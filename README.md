@@ -56,7 +56,6 @@
 (defun remove-each-rnth-reducer (n &key (key #'identity))
   (lambda (acc elem) ;; lambda
     (let ((current-index (length acc))) ;; index
-      ;; Перевіряємо, чи потрібно пропустити елемент
       (if (and (= (mod (+ current-index 1) n) 0) ;; nth
                (funcall key elem)) ;; condition
           acc ;; skip
@@ -68,6 +67,30 @@
           list
           :from-end t ;; reverse
           :initial-value nil)) ;; init
+;; Функція для тестування remove-each-rnth-reducer
+(defun test-remove-each-rnth-reducer (test-number n input expected &optional key)
+  "Тестує remove-each-rnth-reducer на заданому списку."
+  (let ((result (reduce (remove-each-rnth-reducer n :key key) ;; Використовуємо нашу функцію
+                        input
+                        :from-end t ;; Проходимо список з кінця
+                        :initial-value nil))) ;; Початкове значення
+    ;; Порівнюємо отриманий результат із очікуваним
+    (if (equalp result expected)
+        (format t "Test ~A: PASSED~%" test-number) ;; Якщо збігається
+        (format t "Test ~A: FAILED~%   Expected: ~A~%   Got: ~A~%" ;; Якщо не збігається
+                test-number expected result))))
+
+;; Приклади тестів
+(format t "Testing remove-each-rnth-reducer~%")
+(test-remove-each-rnth-reducer 1 3 '(1 2 3 4 5 6 7 8 9) ;; Кожен 3-й елемент
+                               '(1 2 4 5 7 8)) ;; Очікуваний результат
+(test-remove-each-rnth-reducer 2 2 '(1 2 3 4 5 6 7 8 9) ;; Кожен 2-й
+                               '(1 3 5 7 9))
+(test-remove-each-rnth-reducer 3 4 '(10 20 30 40 50 60) ;; Кожен 4-й
+                               '(10 20 30 50 60))
+(test-remove-each-rnth-reducer 4 2 '(1 2 3 4 5 6) ;; З key
+                               '(1 3 5)
+                               (lambda (x) (evenp x))) ;; Видаляємо парні
 
 
 ```
@@ -76,7 +99,6 @@
 
 ```lisp
 
-;; Тестова функція для insert-with-key-and-test
 (defun test-insert-with-key-and-test ()
   (let ((key #'identity) ;; Простий ключ: повертає сам елемент
         (test #'>))      ;; Тест: сортування за спаданням
