@@ -61,15 +61,30 @@
           acc ;; skip
           (cons elem acc))))) ;; add
 
-(defun test-remove-each-rnth-reducer (list n &key (key #'identity))
-  "Тестова функція для застосування remove-each-rnth-reducer."
-  (reduce (remove-each-rnth-reducer n :key key) ;; reducer
-          list
-          :from-end t ;; reverse
-          :initial-value nil)) ;; init
-;; Функція для тестування remove-each-rnth-reducer
+```
+
+3. Тести
+
+```lisp
+(defun test-insert-with-key-and-test ()
+  (let ((key #'identity) ;; Простий ключ: повертає сам елемент
+        (test #'>))      ;; Тест: сортування за спаданням
+    (let ((result (insert-with-key-and-test 5 '(10 8 3) key test))) ;; Вставляємо 5 у список
+      (if (equalp result '(10 8 5 3))
+          (format t "Test insert-with-key-and-test: PASSED~%")
+          (format t "Test insert-with-key-and-test: FAILED. Expected: ~A, Got: ~A~%"
+                  '(10 8 5 3) result)))))
+
+(defun test-sort-insertion-functional ()
+  (let ((key #'identity) ;; Простий ключ: повертає сам елемент
+        (test #'<))      ;; Тест: сортування за зростанням
+    (let ((result (sort-insertion-functional '(4 1 3 5 2) :key key :test test)))
+      (if (equalp result '(1 2 3 4 5))
+          (format t "Test sort-insertion-functional: PASSED~%")
+          (format t "Test sort-insertion-functional: FAILED. Expected: ~A, Got: ~A~%"
+                  '(1 2 3 4 5) result)))))
+
 (defun test-remove-each-rnth-reducer (test-number n input expected &optional key)
-  "Тестує remove-each-rnth-reducer на заданому списку."
   (let ((result (reduce (remove-each-rnth-reducer n :key key) ;; Використовуємо нашу функцію
                         input
                         :from-end t ;; Проходимо список з кінця
@@ -82,46 +97,10 @@
 
 ;; Приклади тестів
 (format t "Testing remove-each-rnth-reducer~%")
-(test-remove-each-rnth-reducer 1 3 '(1 2 3 4 5 6 7 8 9) ;; Кожен 3-й елемент
-                               '(1 2 4 5 7 8)) ;; Очікуваний результат
-(test-remove-each-rnth-reducer 2 2 '(1 2 3 4 5 6 7 8 9) ;; Кожен 2-й
-                               '(1 3 5 7 9))
-(test-remove-each-rnth-reducer 3 4 '(10 20 30 40 50 60) ;; Кожен 4-й
-                               '(10 20 30 50 60))
-(test-remove-each-rnth-reducer 4 2 '(1 2 3 4 5 6) ;; З key
-                               '(1 3 5)
-                               (lambda (x) (evenp x))) ;; Видаляємо парні
-
-
-```
-
-3. Тести
-
-```lisp
-
-(defun test-insert-with-key-and-test ()
-  (let ((key #'identity) ;; Простий ключ: повертає сам елемент
-        (test #'>))      ;; Тест: сортування за спаданням
-    (let ((result (insert-with-key-and-test 5 '(10 8 3) key test))) ;; Вставляємо 5 у список
-      (if (equalp result '(10 8 5 3))
-          (format t "Test insert-with-key-and-test: PASSED~%")
-          (format t "Test insert-with-key-and-test: FAILED. Expected: ~A, Got: ~A~%"
-                  '(10 8 5 3) result)))))
-
-;; Тестова функція для sort-insertion-functional
-(defun test-sort-insertion-functional ()
-  (let ((key #'identity) ;; Простий ключ: повертає сам елемент
-        (test #'<))      ;; Тест: сортування за зростанням
-    (let ((result (sort-insertion-functional '(4 1 3 5 2) :key key :test test)))
-      (if (equalp result '(1 2 3 4 5))
-          (format t "Test sort-insertion-functional: PASSED~%")
-          (format t "Test sort-insertion-functional: FAILED. Expected: ~A, Got: ~A~%"
-                  '(1 2 3 4 5) result)))))
-
-;; Виконання тестів
-(test-insert-with-key-and-test)
-(test-sort-insertion-functional)
-
+(test-remove-each-rnth-reducer 1 3 '(1 2 3 4 5 6 7 8 9) '(1 2 4 5 7 8)) ;; Кожен 3-й елемент
+(test-remove-each-rnth-reducer 2 2 '(1 2 3 4 5 6 7 8 9) '(1 3 5 7 9)) ;; Кожен 2-й
+(test-remove-each-rnth-reducer 3 4 '(10 20 30 40 50 60) '(10 20 30 50 60)) ;; Кожен 4-й
+(test-remove-each-rnth-reducer 4 2 '(1 2 3 4 5 6) '(1 3 5) (lambda (x) (evenp x))) ;; Видаляємо парні
 ```
 
 ## Результат виконання програми
