@@ -52,16 +52,14 @@
 бути значення ключових параметрів функції reduce from-end та initial-value ).
 
 ```lisp
-(defun remove-each-rnth-reducer (n &key (key #'identity))
-  "Returns a reducer function to remove every nth element based on the key."
-  (let ((index 0)) ;; Initialize the index
-    (lambda (acc elem)
-      (let ((current-index (incf index))) ;; Increment index on each call
-        (if (and (= (mod current-index n) 0)
-                 (funcall key elem)) ;; Check the condition to skip
-            acc ;; Skip adding this element
-            (cons elem acc))))))
-
+(defun remove-each-rnth-reducer (n &optional (key nil))
+  (let ((counter 0))
+    (lambda (elem acc)
+      (incf counter)
+      (if (or (and key (funcall key elem))  
+              (and (not key) (zerop (mod counter n)))) 
+          acc
+          (cons elem acc)))))
 
 ```
 
@@ -86,27 +84,51 @@
           (format t "Test sort-insertion-functional: FAILED. Expected: ~A, Got: ~A~%"
                   '(1 2 3 4 5) result)))))
 
-(defun test-remove-each-rnth-reducer (test-number n input expected &optional key)
-  (let ((result (reduce (remove-each-rnth-reducer n :key key) ;; Використовуємо нашу функцію
-                        input
-                        :from-end t ;; Проходимо список з кінця
-                        :initial-value nil))) ;; Початкове значення
-    ;; Порівнюємо отриманий результат із очікуваним
-    (if (equalp result expected)
-        (format t "Test ~A: PASSED~%" test-number) ;; Якщо збігається
-        (format t "Test ~A: FAILED~%   Expected: ~A~%   Got: ~A~%" ;; Якщо не збігається
-                test-number expected result))))
+(defun check-remove-each-rnth-reducer (name input n expected &key initial-value from-end key)
+  (let ((result (reduce (remove-each-rnth-reducer n key) input 
+                        :from-end from-end 
+                        :initial-value initial-value)))
+    (format t "~:[FAILED~;PASSED~]... ~a~%" 
+            (equal result expected)
+            name)
+    (when (not (equal result expected))
+      (format t "Expected: ~a~%Got: ~a~%~%" expected result))))
 
-;; Приклади тестів
-(format t "Testing remove-each-rnth-reducer~%")
-(test-remove-each-rnth-reducer 1 3 '(1 2 3 4 5 6 7 8 9) '(1 2 4 5 7 8)) ;; Кожен 3-й елемент
-(test-remove-each-rnth-reducer 2 2 '(1 2 3 4 5 6 7 8 9) '(1 3 5 7 9)) ;; Кожен 2-й
-(test-remove-each-rnth-reducer 3 4 '(10 20 30 40 50 60) '(10 20 30 50 60)) ;; Кожен 4-й
-(test-remove-each-rnth-reducer 4 2 '(1 2 3 4 5 6) '(1 3 5) (lambda (x) (evenp x))) ;; Видаляємо парні
+(defun test-remove-each-rnth-reducer ()
+  "Тестує функцію remove-each-rnth-reducer на різних випадках."
+  
+  ;; Тести за замовчуванням
+  (check-remove-each-rnth-reducer "Test 1" '(1 2 3 4) 2 '(2 4) :from-end t :initial-value '())
+  (check-remove-each-rnth-reducer "Test 2" '(1 2 3 4 5 6) 3 '(2 3 5 6) :from-end t :initial-value '())
+  (check-remove-each-rnth-reducer "Test 3" '(1 2 3 4 5) 1 '() :from-end t :initial-value '())
+  
+  ;; Тест для порожнього списку
+  (check-remove-each-rnth-reducer "Test 4" '() 2 '() :from-end t :initial-value '())
+
+  ;; Тести з використанням ключового параметру
+  (check-remove-each-rnth-reducer "Test 5" '(1 2 3 4) 2 '(1 3) :from-end t :initial-value '() :key #'evenp)
+  (check-remove-each-rnth-reducer "Test 6" '(1 2 3 4 5 6) 2 '(2 4 6) :from-end t :initial-value '() :key #'oddp)
+  
+  ;; Додаткові тести
+  (check-remove-each-rnth-reducer "Test 7" '(10 20 30 40 50) 2 '(10 30 50) :from-end t :initial-value '())
+  (check-remove-each-rnth-reducer "Test 8" '(10 20 30 40 50) 3 '(10 20 40 50) :from-end t :initial-value '())
+  (check-remove-each-rnth-reducer "Test 9" '(1 1 1 1 1) 2 '(1 1 1) :from-end t :initial-value '())
+  (check-remove-each-rnth-reducer "Test 10" '(5 6 7 8 9) 1 '(6 8) :from-end t :initial-value '() :key #'oddp))
+
 ```
 
 ## Результат виконання програми
 
 ```
-
+PASSED... Test 1
+PASSED... Test 2
+PASSED... Test 3
+PASSED... Test 4
+PASSED... Test 5
+PASSED... Test 6
+PASSED... Test 7
+PASSED... Test 8
+PASSED... Test 9
+PASSED... Test 10
+T
 ```
