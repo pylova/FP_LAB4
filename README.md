@@ -22,14 +22,14 @@
 
 ```lisp
 (defun insert-with-key-and-test (value sorted key test)
-  (let ((value-key (funcall key value))) ;; Обчислюємо ключове значення для елемента
+  (let ((value-key (funcall key value)))
     (if (null sorted)
-        (list value) ;; Якщо список порожній, створюємо новий список
-        (let ((first-key (funcall key (car sorted)))) ;; Обчислюємо ключове значення першого елемента
+        (list value)
+        (let ((first-key (funcall key (car sorted))))
           (if (funcall test value-key first-key)
-              (cons value sorted) ;; Вставляємо перед першим елементом
+              (cons value sorted)
               (cons (car sorted)
-                    (insert-with-key-and-test value (cdr sorted) key test))))))) ;; Рекурсивний виклик для решти списку
+                    (insert-with-key-and-test value (cdr sorted) key test)))))))
 
 (defun sort-insertion-functional (unsorted &key (key #'identity) (test #'<))
   (reduce (lambda (sorted value)
@@ -52,14 +52,16 @@
 бути значення ключових параметрів функції reduce from-end та initial-value ).
 
 ```lisp
-
 (defun remove-each-rnth-reducer (n &key (key #'identity))
-  (lambda (acc elem) ;; lambda
-    (let ((current-index (length acc))) ;; index
-      (if (and (= (mod (+ current-index 1) n) 0) ;; nth
-               (funcall key elem)) ;; condition
-          acc ;; skip
-          (cons elem acc))))) ;; add
+  "Returns a reducer function to remove every nth element based on the key."
+  (let ((index 0)) ;; Initialize the index
+    (lambda (acc elem)
+      (let ((current-index (incf index))) ;; Increment index on each call
+        (if (and (= (mod current-index n) 0)
+                 (funcall key elem)) ;; Check the condition to skip
+            acc ;; Skip adding this element
+            (cons elem acc))))))
+
 
 ```
 
